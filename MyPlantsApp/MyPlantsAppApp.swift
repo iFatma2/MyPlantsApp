@@ -11,7 +11,7 @@ import SwiftUI
 struct MyPlantsAppApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashPage()
         }
     }
 }
