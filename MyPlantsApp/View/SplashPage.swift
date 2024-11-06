@@ -9,9 +9,12 @@ import SwiftUI
 
 struct SplashPage: View {
     @State private var isActive = false
+    // Create an instance of TodayReminderViewModel
+    @StateObject private var todayReminderViewModel = TodayReminderViewModel(plants: [])
     
     var body: some View {
         if isActive {
+            // Pass the view model to MyPlants
             MyPlants()
         } else {
             VStack {
@@ -35,8 +38,9 @@ struct SplashPage: View {
     }
 }
 
-#Preview{
+#Preview {
     SplashPage()
 }
+
 
 

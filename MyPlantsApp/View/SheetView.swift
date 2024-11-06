@@ -9,26 +9,17 @@ import SwiftUI
 
 // Struct to Show the sheet Content
 struct SheetView: View {
-    
-    // Vars Section
-    @State private var navigateToTodayReminder = false
-    @Binding var showingSheet: Bool // Binding the state
-    @Binding var plants: [Plant] // Binding to pass Plants List
-    @Binding var choosenPlant: Plant? // To store the selected plant for editing/deletion
-    
-    // Editable plant details
-    @State private var plantName: String = ""
-    @State private var room: String = "Bedroom"
-    @State private var light: String = "Full Sun"
-    @State private var wateringDays: String = "Every day"
-    @State private var waterAmount: String = "20-50 ml"
+    @ObservedObject var viewModel: SheetViewModel
 
     var body: some View {
         NavigationView {
             VStack {
-                HStack { // For navigation bar buttons (Cancel, Set reminder and Save)
+                HStack {
+                    // Cancel button
                     Button("Cancel") {
-                        showingSheet = false
+                        viewModel.showingSheet = false
+                        //viewModel.showingSheet = false
+
                     }
                     .padding(.trailing, 70.0)
                     .foregroundColor(.customGreen)
@@ -42,20 +33,7 @@ struct SheetView: View {
                     
                     // Save button
                     Button("Save") {
-                        if let index = plants.firstIndex(where: { $0.id == choosenPlant?.id }) {
-                            // Update the existing plant
-                            plants[index].name = plantName
-                            plants[index].room = room
-                            plants[index].light = light
-                            plants[index].wateringDays = wateringDays
-                            plants[index].waterAmount = waterAmount
-                        } else {
-                            // Add a new plant
-                            let newPlant = Plant(name: plantName, room: room, light: light, wateringDays: wateringDays, waterAmount: waterAmount)
-                            plants.append(newPlant)
-                        }
-                        navigateToTodayReminder = true
-                        //showingSheet = false
+                        viewModel.savePlant()
                     }
                     .padding(.leading, 70.0)
                     .foregroundColor(.customGreen)
@@ -68,7 +46,7 @@ struct SheetView: View {
                             Divider()
                                 .frame(width: 2.0)
                                 .background(Color.customGreen)
-                            TextField("Enter plant name", text: $plantName)
+                            TextField("Enter plant name", text: $viewModel.plantName)
                         }
                         .cornerRadius(10)
                     }
@@ -78,7 +56,7 @@ struct SheetView: View {
                             // Room picker
                             HStack {
                                 Image(systemName: "location")
-                                Picker("Room", selection: $room) {
+                                Picker("Room", selection: $viewModel.room) {
                                     Text("Bedroom").tag("Bedroom")
                                     Text("Living Room").tag("Living Room")
                                     Text("Kitchen").tag("Kitchen")
@@ -90,7 +68,7 @@ struct SheetView: View {
                             // Light picker
                             HStack {
                                 Image(systemName: "sun.max")
-                                Picker("Light", selection: $light) {
+                                Picker("Light", selection: $viewModel.light) {
                                     Text("Full Sun").tag("Full Sun")
                                     Text("Partial Sun").tag("Partial Sun")
                                     Text("Low Light").tag("Low Light")
@@ -105,7 +83,7 @@ struct SheetView: View {
                             // Watering days picker
                             HStack {
                                 Image(systemName: "drop")
-                                Picker("Water Days", selection: $wateringDays) {
+                                Picker("Water Days", selection: $viewModel.wateringDays) {
                                     Text("Every day").tag("Every day")
                                     Text("Every 2 days").tag("Every 2 days")
                                     Text("Every 3 days").tag("Every 3 days")
@@ -120,7 +98,7 @@ struct SheetView: View {
                             // Water amount picker
                             HStack {
                                 Image(systemName: "drop")
-                                Picker("Water", selection: $waterAmount) {
+                                Picker("Water", selection: $viewModel.waterAmount) {
                                     Text("20-50 ml").tag("20-50 ml")
                                     Text("50-100 ml").tag("50-100 ml")
                                     Text("30ml").tag("30ml")
@@ -132,15 +110,11 @@ struct SheetView: View {
                         }
                     }
                     
-                    if choosenPlant != nil {
+                    if viewModel.choosenPlant != nil {
                         Section {
                             HStack {
                                 Button(action: {
-                                    if let plantToDelete = choosenPlant, let index = plants.firstIndex(where: { $0.id == plantToDelete.id }) {
-                                        plants.remove(at: index)
-                                    }
-                                    choosenPlant = nil
-                                    showingSheet = false
+                                    viewModel.deletePlant()
                                 }) {
                                     Text("Delete Reminder")
                                         .padding(.leading, 100)
@@ -152,21 +126,8 @@ struct SheetView: View {
                 }
             }
         }
-        .onAppear {
-            if let plant = choosenPlant {
-                plantName = plant.name
-                room = plant.room
-                light = plant.light
-                wateringDays = plant.wateringDays
-                waterAmount = plant.waterAmount
-            }
-        }
-        .fullScreenCover(isPresented: $navigateToTodayReminder) {
-            TodayReminder(plants: $plants)
+        .fullScreenCover(isPresented: $viewModel.navigateToTodayReminder) {
+            TodayReminder(viewModel: TodayReminderViewModel(plants: viewModel.plants))
         }
     }
-}
-
-#Preview {
-    MyPlants()
 }
